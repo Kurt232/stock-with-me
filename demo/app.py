@@ -19,7 +19,6 @@ import numpy as np
 import pandas as pd
 from bs4 import BeautifulSoup
 import re
-import json
 from wordcloud import WordCloud
 from wordcloud import ImageColorGenerator
 from wordcloud import STOPWORDS
@@ -27,6 +26,7 @@ import matplotlib.pyplot as plt
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+import json
 
 app = Flask(__name__)
 
@@ -71,13 +71,9 @@ def translate(senti):
         print('negative')
 
 def sentiment_ana(message):
-
-    print(type(message))
     seq = tokenizer.texts_to_sequences(message)
-
     padded = pad_sequences(seq, maxlen=50, dtype='int32', value=0)
     pred = md2.predict(padded)
-
     labels = ['0','1','2']
 
     return np.argmax(pred)
@@ -116,15 +112,12 @@ def handle_require_data(stockName):
     data = pd.DataFrame([t,s])
     data = data.T
     data = data.rename(columns={0:'Title',1:'Message'})
-
+    data.insert(loc=1, column='RawMessage', value=data['Message'])
     data['Message'] = data['Message'].apply(cleanText)
-    data = pd.DataFrame(data["Message"])
-    data = data.rename(columns={0:'Message'})
 
     positive=0
     negative=0
     neutral=0
-
     temp_sentiment = []
 
     for index,row in data.iterrows():
@@ -140,10 +133,13 @@ def handle_require_data(stockName):
     data.insert(loc=0, column='sentiment', value=temp_sentiment)
     #   data是包含所有新闻内容的类型为DataFrame的对象
     #   positive， neutral，negative是各自新闻的总数
+    data = data.drop('Message', axis='columns')
 
     info = dict()
     info['positive'] = positive
     info['negative'] = negative
+    data2 = data.to_dict('records')
+    info['news'] = data2
     info_json = json.dumps(info)
 
     socketio.emit('info: ', info_json, callback=ack)
