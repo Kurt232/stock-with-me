@@ -10,7 +10,7 @@
     
 --------------------------------------------------------- 
 """
-from flask import Flask
+from flask import Flask, jsonify
 from flask_socketio import SocketIO
 from keras.models import load_model
 from keras.preprocessing.text import Tokenizer
@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 from bs4 import BeautifulSoup
 import re
+import json
 from wordcloud import WordCloud
 from wordcloud import ImageColorGenerator
 from wordcloud import STOPWORDS
@@ -140,7 +141,12 @@ def handle_require_data(stockName):
     #   data是包含所有新闻内容的类型为DataFrame的对象
     #   positive， neutral，negative是各自新闻的总数
 
-    socketio.emit('positive_news: ', str(positive), callback=ack)
+    info = dict()
+    info['positive'] = positive
+    info['negative'] = negative
+    info_json = json.dumps(info)
+
+    socketio.emit('info: ', info_json, callback=ack)
 
 if __name__ == "__main__":
     socketio.run(app, host='localhost', port=4321)
