@@ -1,0 +1,98 @@
+import warnings
+warnings.filterwarnings("ignore")
+import pandas as pd
+import sklearn 
+import datetime
+import math
+import numpy as np
+import matplotlib.pyplot as plt
+from datetime import datetime
+from matplotlib import style
+from pandas_datareader import data
+from sklearn import datasets,linear_model,model_selection
+from sklearn.model_selection import train_test_split
+from sklearn import preprocessing,svm,tree
+import sklearn.svm as svm
+
+def predictStock(stockName):
+    ##通过雅虎获取股票信息
+    yahoo = data.DataReader(stockName,start = "2020",end = "2023",data_source = "yahoo")
+    yahoo_close = yahoo["Close"]
+    ##空值处理
+    forecast = 'Close'
+    yahoo.fillna(value=-99999, inplace=True)
+    forecast_out = int(math.ceil(0.03 * len(yahoo)))#调整预测天数
+    ##获取X和y
+    yahoo['label'] = yahoo[forecast].shift(-forecast_out)
+    X = np.array(yahoo.drop(['label'], 1))
+    X = preprocessing.scale(X)
+    X_late = X[-forecast_out:]
+    X = X[:-forecast_out]
+    yahoo.dropna(inplace=True)
+    y = np.array(yahoo['label'])
+    yahooLinear = yahoo.copy()
+    yahooSvm = yahoo.copy()
+    yahooTree = yahoo.copy()
+    ##线性模型
+    X_train, X_test, y_train ,y_test = model_selection.train_test_split(X,y,test_size=0.3)
+    model_linear = linear_model.LinearRegression()
+    model_linear.fit(X_train,y_train)
+    forecast_set = model_linear.predict(X_late)
+    style.use('ggplot')
+    yahooLinear['Forecast']=np.nan
+    last_date = yahooLinear.iloc[-1].name
+    last_unix = last_date.timestamp()
+    one_day = 86400
+    next_unix = last_unix + one_day
+
+    for i in forecast_set:
+        next_date = datetime.fromtimestamp(next_unix)
+        next_unix += 86400
+        yahooLinear.loc[next_date] = [np.nan for _ in range(len(yahooLinear.columns)-1)]+[i]
+    yahooLinear['Close'].plot()
+    yahooLinear['Forecast'].plot()
+    plt.title("By Linear model")
+    plt.show()#红色为历史收盘价，蓝色为短期预测收盘价
+    
+    ##支持向量机模型
+    X_train, X_test, y_train ,y_test = model_selection.train_test_split(X,y,test_size=0.3)
+    model_svm = svm.SVC(C=10,kernel='rbf')
+    model_svm.fit(X_train,y_train.astype('int'))
+    forecast_set = model_svm.predict(X_late)
+    style.use('ggplot')
+    yahooSvm['Forecast']=np.nan
+    last_date = yahooSvm.iloc[-1].name
+    last_unix = last_date.timestamp()
+    one_day = 86400
+    next_unix = last_unix + one_day
+    for i in forecast_set:
+        next_date = datetime.fromtimestamp(next_unix)
+        next_unix += 86400
+        yahooSvm.loc[next_date] = [np.nan for _ in range(len(yahooSvm.columns)-1)]+[i]
+    yahooSvm['Close'].plot()
+    yahooSvm['Forecast'].plot()
+    plt.title("By Svm model")
+    plt.show()#红色为历史收盘价，蓝色为短期预测收盘价
+    
+    ##决策树模型
+    X_train, X_test, y_train ,y_test = model_selection.train_test_split(X,y,test_size=0.3)
+    model_tree = tree.DecisionTreeClassifier(criterion="gini")
+    model_tree.fit(X_train,y_train.astype('int'))
+    forecast_set = model_tree.predict(X_late)
+    style.use('ggplot')
+    yahooTree['Forecast']=np.nan
+    last_date = yahooTree.iloc[-1].name
+    last_unix = last_date.timestamp()
+    one_day = 86400
+    next_unix = last_unix + one_day
+    for i in forecast_set:
+        next_date = datetime.fromtimestamp(next_unix)
+        next_unix += 86400
+        yahooTree.loc[next_date] = [np.nan for _ in range(len(yahooTree.columns)-1)]+[i]
+    yahooTree['Close'].plot()
+    yahooTree['Forecast'].plot()
+    plt.title("By DecisionTree model")
+    plt.show()#红色为历史收盘价，蓝色为短期预测收盘价
+    return yahooLinear,yahooSvm,yahooTree
+
+print(predictStock("TSLA"))
