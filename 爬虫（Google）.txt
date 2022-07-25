@@ -1,0 +1,36 @@
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+import pandas as pd
+
+wd = webdriver.Chrome(r'd:\tools\chromedriver.exe')#需要安装浏览器引擎(https://chromedriver.storage.googleapis.com/index.html)
+wd.implicitly_wait(10)#最长等待时间
+def getInformation(stockName):
+    titleList = []
+    summaryList = []
+    linkList = []
+    ##Google搜索股票
+    wd.get("https://www.google.com/?gl=us&hl=en&gws_rd=cr&pws=0")
+    inputElement = wd.find_element(By.XPATH,"//input[@class = 'gLFyf gsfi']") #寻找搜索框元素
+    inputElement.send_keys(stockName) #输入搜索内容
+    enterElement = wd.find_element(By.XPATH,"//input[@class = 'gNO89b']").click()#输入回车
+    newsElement = wd.find_element(By.XPATH,"//div[@class = 'MUFPAc']//a[text()='News']").click()#限定在“新闻”内
+    ##获取每页新闻及摘要
+    for i in range(5):
+        informationList = wd.find_elements(By.XPATH,"//div[@role = 'heading']")
+        for information in informationList:
+            title = information.text
+            titleList += [title]
+            try:
+                summary = information.find_element(By.XPATH,".//following-sibling::div[1]").text
+                summaryList += [summary]
+                link = information.find_element(By.XPATH,"./parent::div[1]/parent::div[1]/parent::a[1]").get_attribute('href')
+                linkList += [link]
+            except:
+                continue
+            
+        next = wd.find_element(By.XPATH,"//td[@class = 'YyVfkd']//following-sibling::td[1]").click()
+    wd.close()   
+    return [titleList,summaryList,linkList]
+[t,s,l] = getInformation("AAPL")
+[t,s,l]
