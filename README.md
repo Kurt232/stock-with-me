@@ -1,8 +1,7 @@
-# stock-with-me
-2022 nus sws team3
+### 首先 pip install chatbotAI
+### 将整个文件下载后，打开examples，然后运行Example.py
+### 测试输入 assessment是否成功运行
+### 测试输入 what is FinTech 是否成功输出
+### 之后修改socket
+### input和print在chatbot/__init__.py中搜索input_socket和print_socket
 
-## front
-前端我忘了按文件夹上传  
-全部都散装在master分支中  
-你们push时也自己拉一个分支吧  
-免得混淆  
