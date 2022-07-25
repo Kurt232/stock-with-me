@@ -136,8 +136,11 @@ def handle_require_data(stockName):
     data = data.drop('Message', axis='columns')
 
     info = dict()
+    info['stockName'] = stockName
     info['positive'] = positive
     info['negative'] = negative
+    info['neutral'] = neutral
+    info['total'] = positive + negative + neutral
     data2 = data.to_dict('records')
     info['news'] = data2
     info_json = json.dumps(info)
