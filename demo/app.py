@@ -40,7 +40,7 @@ import datetime
 import math
 from datetime import datetime
 from matplotlib import style
-from pandas_datareader import data
+import pandas_datareader.data as pdr
 from sklearn import datasets,linear_model,model_selection
 from sklearn.model_selection import train_test_split
 from sklearn import preprocessing,svm,tree
@@ -112,7 +112,7 @@ def cleanText(text):
 
 def predictStock(stockName):
     ##通过雅虎获取股票信息
-    yahoo = data.DataReader(stockName,start = "2020",end = "2023",data_source = "yahoo")
+    yahoo = pdr.DataReader(stockName,start = "2020",end = "2023",data_source = "yahoo")
     yahoo_close = yahoo["Close"]
     ##空值处理
     forecast = 'Close'
@@ -209,7 +209,7 @@ def handle_require_data(stockName):
 
     [t, s, l] = getInformation(stockName)
 
-    data = pd.DataFrame([t,s])
+    data = pd.DataFrame([t, s, l])
     data = data.T
     data = data.rename(columns={0:'Title',1:'Message'})
     data.insert(loc=1, column='RawMessage', value=data['Message'])
