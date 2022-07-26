@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 from bs4 import BeautifulSoup
 import re
+from sklearn.ensemble import RandomForestRegressor
 from wordcloud import WordCloud
 from wordcloud import ImageColorGenerator
 from wordcloud import STOPWORDS
@@ -117,7 +118,7 @@ def predictStock(stockName):
     ##空值处理
     forecast = 'Close'
     yahoo.fillna(value=-99999, inplace=True)
-    forecast_out = int(math.ceil(0.03 * len(yahoo)))#调整预测天数
+    forecast_out = int(math.ceil(0.02 * len(yahoo)))#调整预测天数
     ##获取X和y
     yahoo['label'] = yahoo[forecast].shift(-forecast_out)
     X = np.array(yahoo.drop(['label'], 1))
@@ -147,11 +148,12 @@ def predictStock(stockName):
         yahooLinear.loc[next_date] = [np.nan for _ in range(len(yahooLinear.columns)-1)]+[i]
     yahooLinear['Close'].plot()
     yahooLinear['Forecast'].plot()
-    plt.savefig('./linear_model.png')
+    plt.savefig('./linear_model.png')     
+    plt.clf()
     
     ##支持向量机模型
     X_train, X_test, y_train ,y_test = model_selection.train_test_split(X,y,test_size=0.3)
-    model_svm = svm.SVC(C=10,kernel='rbf')
+    model_svm = svm.SVR()
     model_svm.fit(X_train,y_train.astype('int'))
     forecast_set = model_svm.predict(X_late)
     style.use('ggplot')
@@ -167,10 +169,11 @@ def predictStock(stockName):
     yahooSvm['Close'].plot()
     yahooSvm['Forecast'].plot()
     plt.savefig('./svm_model.png')
+    plt.clf()
     
-    ##决策树模型
-    X_train, X_test, y_train ,y_test = model_selection.train_test_split(X,y,test_size=0.3)
-    model_tree = tree.DecisionTreeClassifier(criterion="gini")
+    ##随机森林模型
+    X_train, X_test, y_train ,y_test = model_selection.train_test_split(X,y,test_size=0.5)
+    model_tree = RandomForestRegressor()
     model_tree.fit(X_train,y_train.astype('int'))
     forecast_set = model_tree.predict(X_late)
     style.use('ggplot')
@@ -185,7 +188,8 @@ def predictStock(stockName):
         yahooTree.loc[next_date] = [np.nan for _ in range(len(yahooTree.columns)-1)]+[i]
     yahooTree['Close'].plot()
     yahooTree['Forecast'].plot()
-    plt.savefig('./decisiontree_model.png')
+    plt.savefig('./RandomForestRegressor_model.png')
+    plt.clf()
 
 def ack():
     print('message was received!')
@@ -211,7 +215,7 @@ def handle_require_data(stockName):
 
     data = pd.DataFrame([t, s, l])
     data = data.T
-    data = data.rename(columns={0:'Title',1:'Message'})
+    data = data.rename(columns={0:'Title',1:'Message',2:"Link"})
     data.insert(loc=1, column='RawMessage', value=data['Message'])
     data['Message'] = data['Message'].apply(cleanText)
 
@@ -249,18 +253,23 @@ def handle_require_data(stockName):
     word_cloud = WordCloud(stopwords=stopwords, background_color="white")
     word_cloud.generate_from_frequencies(dict1)
 
+    predictStock(stockName)
     plt.figure( figsize=(15,10))
     plt.imshow(word_cloud, interpolation='bilinear')
     plt.axis("off")
     plt.savefig('./wordcloud.png')
+    plt.clf()
 
     data = data.drop('Message', axis='columns')
+    data = data.drop('mytext_new', axis='columns')
     data['sentiment'] = data.sentiment.map(lambda x: "success" if x == 0 else ("info" if x == 1 else "danger"))
     predictStock(stockName)
 
     info = dict()
     info['positive'] = positive
     info['negative'] = negative
+    info['neutral'] = neutral
+    info['total'] = positive + neutral + negative
     data2 = data.to_dict('records')
     info['news'] = data2
 
@@ -282,11 +291,11 @@ def handle_require_data(stockName):
         svm_model_Data = base64.b64encode(svm_model_image).decode("utf-8")
     info['svm_model'] = svm_model_Data
 
-    decisiontree_model_file = "decisiontree_model.png"
-    with open(decisiontree_model_file,"rb") as f:
-        decisiontree_model_image = f.read()
-        decisiontree_model_Data = base64.b64encode(decisiontree_model_image).decode("utf-8")
-    info['decisiontree_model'] = decisiontree_model_Data
+    RandomForestRegressor_model_file = "RandomForestRegressor_model.png"
+    with open(RandomForestRegressor_model_file,"rb") as f:
+        RandomForestRegressor_model_image = f.read()
+        RandomForestRegressor_model_Data = base64.b64encode(RandomForestRegressor_model_image).decode("utf-8")
+    info['RandomForestRegressor_model'] = RandomForestRegressor_model_Data
 
     info_json = json.dumps(info)
     socketio.emit('info: ', info_json, callback=ack)
