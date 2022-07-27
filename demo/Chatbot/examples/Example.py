@@ -22,10 +22,11 @@ def who_is(session, query):
     return "I don't know about " + query
 
 
-def assessment(a,b,c,d,e,count, score, data):
+def assessment(a, b, c, d, e, count, score, data):
     ret_mes = ''
     if count == 0:
-        ret_mes +=("One of the hardest things for any financial planner to come to grips with is a client’s risk tolerance. As an investment planner, \nit is your job to translate subjective feelings into something more objective that can be used to guide the construction of an investment portfolio. Unfortunately, there is \nno standard measurement or method of assessing a client’s risk tolerance. \nA wide variety of descriptive or quantitative questionnaires are available, and you have to choose a method that works best for you.\n")
+        ret_mes += (
+            "One of the hardest things for any financial planner to come to grips with is a client’s risk tolerance. As an investment planner, \nit is your job to translate subjective feelings into something more objective that can be used to guide the construction of an investment portfolio. Unfortunately, there is \nno standard measurement or method of assessing a client’s risk tolerance. \nA wide variety of descriptive or quantitative questionnaires are available, and you have to choose a method that works best for you.\n")
 
     Score = []
     questions = ['Life Stage\n1. What is your current age?',
@@ -101,7 +102,7 @@ def assessment(a,b,c,d,e,count, score, data):
                ]
     # ret_mes += '\n' 提示语句有回车
     if int(count) <= 11:
-    #     此时已经得到上一题答案，这次返回下一题答案
+        #     此时已经得到上一题答案，这次返回下一题答案
         ret_mes += str(questions[int(count)])
         ret_mes += '\n'
         select = selects[int(count)]
@@ -133,12 +134,7 @@ def assessment(a,b,c,d,e,count, score, data):
             c = 0
             d = 0
             e = 0
-    return  ret_mes, a, b, c, d, e
-
-
-
-
-
+    return ret_mes, a, b, c, d, e
 
 
 def chatrobot_handle(data_str):
@@ -147,10 +143,10 @@ def chatrobot_handle(data_str):
     # chat.converse(first_question)
     session = mapper.Session(chat, session_id="general")
     session.conversation.append_bot_message(first_question)
-    callback = functools.partial(chat.r_say, session)
+    callback = functools.partial(chat._say, session)
     terminate = "quit"
     input_sentence = ''
-    f = open("info.json", 'r')
+    f = open("./Chatbot/examples/info.json", 'r')
     new_dic = json.load(f)
     f.close()
     # print(new_dic['status'])
@@ -164,6 +160,20 @@ def chatrobot_handle(data_str):
             output_sentence = 'Bye!'
         elif input_sentence == 'assessment':
             new_dic['status'] = 1
+            a = int(new_dic['a'])
+            b = int(new_dic['b'])
+            c = int(new_dic['c'])
+            d = int(new_dic['d'])
+            e = int(new_dic['e'])
+            score = int(new_dic['score'])
+            count = int(new_dic['count'])
+            output_sentence, new_dic['a'], new_dic['b'], new_dic['c'], new_dic['d'], new_dic['e'] = assessment(a, b, c,
+                                                                                                                d, e,
+                                                                                                               count,
+                                                                                                               score,
+                                                                                                               data_str)
+
+
 
             pass
         else:
@@ -176,6 +186,8 @@ def chatrobot_handle(data_str):
         e = int(new_dic['e'])
         score = int(new_dic['score'])
         count = int(new_dic['count'])
+        if count == 0:
+            count += 1
         # print('status = 1')
         # print(count,a,b,c,d,e,data_str)
         if input_sentence == 'hello':
@@ -189,8 +201,11 @@ def chatrobot_handle(data_str):
             new_dic['count'] = 0
             new_dic['score'] = 0
         else:
-
-            output_sentence, new_dic['a'], new_dic['b'], new_dic['c'], new_dic['d'], new_dic['e'] =  assessment(a,b,c,d,e,count,score, data_str)
+            output_sentence, new_dic['a'], new_dic['b'], new_dic['c'], new_dic['d'], new_dic['e'] = assessment(a, b, c,
+                                                                                                                d, e,
+                                                                                                               count,
+                                                                                                               score,
+                                                                                                               data_str)
             count += 1
             new_dic['count'] = count
             if new_dic['count'] == 13:
@@ -209,7 +224,7 @@ def chatrobot_handle(data_str):
                 else:
                     Result.append('Very aggressive')
                 output_sentence = 'Your Investment Style is: \n\r' + str(Result[0]) + output_sentence
-            elif count == 2+1:
+            elif count == 2 + 1:
                 i = a * 1 + b * 2 + c * 3 + d * 4 + e * 5
                 Result = []
                 if i <= 3:
@@ -218,18 +233,27 @@ def chatrobot_handle(data_str):
                     Result.append('Intermediate-term (5 to 10 years)')
                 else:
                     Result.append('Long-term (over 10 years)')
-                output_sentence = 'Your Investment Time Horizon is: \n\r' + str(Result[0]) + '\n'+output_sentence
-
-
-
+                output_sentence = 'Your Investment Time Horizon is: \n\r' + str(Result[0]) + '\n' + output_sentence
 
             # output_sentence = assessment()
 
-    f = open('info.json', 'w')
+    f = open('./Chatbot/examples/info.json', 'w')
     json.dump(new_dic, f)
     f.close()
     return output_sentence
 
 
 
-
+# print("hello")
+# print((chatrobot_handle("hello")))
+# print("ass")
+# print(chatrobot_handle("assessment"))
+# for i in range(2):
+#     print('a')
+#     print(chatrobot_handle("a"))
+# print('hello')
+# print(chatrobot_handle("hello"))
+# print('assess')
+# print(chatrobot_handle("assessment"))
+# print("hello")
+# print(chatrobot_handle("hello"))

@@ -15,11 +15,8 @@ from flask import Flask
 from flask_socketio import SocketIO
 import json
 
-import sys
-
-sys.path.append('./Chatbot/examples/')
-
-import Example
+from Chatbot.examples.Example import *
+from Chatbot.chatbot import *
 
 app = Flask(__name__)
 
@@ -41,8 +38,9 @@ def handel_connection():
 @socketio.on('get_msg')
 def handle_data_data(data):
     print("received message: "+ data)
-    msg = Example.chatrobot_handle(data)
+    msg = chatrobot_handle(data)
     # msg = chat(data)
+    # print("send message:"+msg)
     socketio.emit('post_msg', msg, callback=ack)
 
 @socketio.on('require_stock')
