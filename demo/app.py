@@ -23,25 +23,29 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins='*')  # 可以跨域了
 
+
 def ack():
     print('message was received!')
+
 
 @socketio.on('connection')
 def handle_connection():
     print('connection')
-    socketio.emit("connected")
+
 
 @socketio.on('connect')
 def handel_connection():
     print('connect')
 
+
 @socketio.on('get_msg')
 def handle_data_data(data):
-    print("received message: "+ data)
+    print("received message: " + data)
     msg = chatrobot_handle(data)
     # msg = chat(data)
     # print("send message:"+msg)
     socketio.emit('post_msg', msg, callback=ack)
+
 
 @socketio.on('require_stock')
 def handle_require_data(data):
@@ -50,11 +54,13 @@ def handle_require_data(data):
     # there is handle InPut to return
     # 并发都无所谓
     # socketio.emit('response_data', handle(data)) data: str
-    with open(data+".JSON", "r") as fp:
+    with open(data + ".JSON", "r") as fp:
         data_return = json.load(fp)
         fp.close()
     data_response = json.dumps(data_return)
-    socketio.emit('response_stock', data_response, callback= ack)
+    socketio.emit('response_stock', data_response, callback=ack)
+
+
 #     data_return = {
 #   "trick": "AAPL",
 #   "seqnum": 2,
