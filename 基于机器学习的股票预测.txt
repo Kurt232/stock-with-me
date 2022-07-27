@@ -35,7 +35,7 @@ def predictStock(stockName):
     yahooSvm = yahoo.copy()
     yahooTree = yahoo.copy()
     ##线性模型
-    X_train, X_test, y_train ,y_test = model_selection.train_test_split(X,y,test_size=0.3)
+    X_train, X_test, y_train ,y_test = model_selection.train_test_split(X,y,test_size=0.2)
     model_linear = linear_model.LinearRegression()
     model_linear.fit(X_train,y_train)
     forecast_set = model_linear.predict(X_late)
@@ -56,7 +56,7 @@ def predictStock(stockName):
     plt.show()#红色为历史收盘价，蓝色为短期预测收盘价
     
     ##支持向量机模型
-    X_train, X_test, y_train ,y_test = model_selection.train_test_split(X,y,test_size=0.3)
+    X_train, X_test, y_train ,y_test = model_selection.train_test_split(X,y,test_size=0.2)
     model_svm = svm.SVR()
     model_svm.fit(X_train,y_train.astype('int'))
     forecast_set = model_svm.predict(X_late)
@@ -76,7 +76,7 @@ def predictStock(stockName):
     plt.show()#红色为历史收盘价，蓝色为短期预测收盘价
     
     ##随机森林模型
-    X_train, X_test, y_train ,y_test = model_selection.train_test_split(X,y,test_size=0.5)
+    X_train, X_test, y_train ,y_test = model_selection.train_test_split(X,y,test_size=0.2)
     model_tree = RandomForestRegressor()
     model_tree.fit(X_train,y_train.astype('int'))
     forecast_set = model_tree.predict(X_late)
